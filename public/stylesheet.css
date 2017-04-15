@@ -1,0 +1,94 @@
+
+		body{
+		background-image: url("https://wallpaperscraft.com/image/light_shadow_blur_background_46792_1920x1200.jpg");
+		min-height: 500px;
+		background-attachment: fixed;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+		}
+		#welcomePage{
+			font-family:Arial, Helvetica, sans-serif;
+			text-align: center;
+		}
+		#p{
+			font-family:Arial, Helvetica, sans-serif;
+			text-align: left;
+		}
+		#usernameWrap{
+			width: 450px;
+			margin:auto;
+			border-radius: 4px;
+		}
+		#chat{
+			height: 500px;
+			margin:auto;
+		}
+		#contentWrap{
+			display:none; /*to not display the chat first*/
+			margin:auto;
+		}
+		#chatWrap{		
+			width: 500px;
+			margin: auto;
+			background-color:#efefef;
+			border-radius: 4px;
+			padding: 5px;
+		}
+		input#username{
+			width: 330px;
+		}
+
+		input#message{
+			width: 380px;
+			padding: 1px;
+		}
+		.button { 
+			display: inline-block;
+			border-radius: 4px;
+			background-color: #f4511e;
+			border: none;
+			color: #FFFFFF;
+			text-align: center;
+			font-size: 16px;
+			padding: 5px; 
+			width: 100px;
+			transition: all 0.5s;
+			cursor: pointer;
+			margin: 5px;
+		}
+		.button span {
+			cursor: pointer;
+			display: inline-block;
+			position: relative;
+			transition: 0.5s;
+		}
+		.button span:after {
+			content: '\00bb';
+			position: absolute;
+			opacity: 0;
+			top: 0;
+			right: -20px;
+			transition: 0.5s;
+		}
+		.button:hover span {
+			padding-right: 25px;
+		}
+		.button:hover span:after {
+			opacity: 1;
+			right: 0;
+		}	
+		img{
+			display: block;
+			margin: auto;
+			width: 5%;
+			height: 5%;
+		}
+		.error{
+			color: red;
+		}
+		.private{
+			color: gray;
+			font-style: italic;
+		}
+	
