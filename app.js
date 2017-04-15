@@ -13,13 +13,14 @@ var express = require ('express'),
 
 /* a list of objects which will contain the user object and key values (username) */
 	users = {}; 
+	/* allows node.js to read static files like javascript and css */
+app.use('/public', express.static(__dirname + '/public'));
 
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: https://www.npmjs.com/package/cfenv
 var cfenv = require('cfenv');
 
-/* allows node.js to read static files like javascript and css */
-app.use('/public', express.static(__dirname + '/public'));
+
 
 /* on get request from a client an index.html file is sent as respond */
 app.get('/', function(req,res){
@@ -29,13 +30,20 @@ app.get('/', function(req,res){
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
 
+
 // start server on the specified port and binding host
-app.listen(appEnv.port, '0.0.0.0', function() {
+//---------------------------------------------------------
+server.listen(appEnv.port, '0.0.0.0', function() {
+
   // print a message when the server starts listening
   console.log("server starting on " + appEnv.url);
 });
+//---------------------------
+
+
 /*the server listens on the port 3000 */
-//server.listen(3000);
+//server.listen(appEnv.port);
+//console.log(appEnv.url);
 
 /* this method defines functions when a connection is established */
 io.sockets.on('connection', function(socket){
