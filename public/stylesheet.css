@@ -16,13 +16,24 @@
 			text-align: left;
 		}
 		#usernameWrap{
-			width: 450px;
+			width: 350px;
 			margin:auto;
 			border-radius: 4px;
+			margin-top: 200px;
 		}
 		#chat{
 			height: 500px;
 			margin:auto;
+		}
+		#SignUpLink{
+			display:none; /*to not display the login first*/
+		}
+		#LoginWrap{
+			display:none; /*to not display the login first*/
+			width: 350px;
+			margin:auto;
+			border-radius: 4px;
+			margin-top: 200px;
 		}
 		#contentWrap{
 			display:none; /*to not display the chat first*/
@@ -36,6 +47,14 @@
 			padding: 5px;
 		}
 		input#username{
+			width: 330px;
+		}
+
+		input#password{
+			width: 330px;
+		}
+
+		input#password2{
 			width: 330px;
 		}
 

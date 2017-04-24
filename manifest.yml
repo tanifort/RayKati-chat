@@ -6,5 +6,3 @@ applications:
   name: RayKati-chat
   host: RayKati-chat
   disk_quota: 1024M
-  services:
-  - discover-iot-try-service

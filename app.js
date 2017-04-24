@@ -9,7 +9,21 @@
 var express = require ('express'),
 	app = express(),
 	server = require ('http').createServer(app),
-	io = require('socket.io').listen(server);
+	io = require('socket.io').listen(server),
+	Cloudant = require('cloudant'),
+	crypt = require('bcryptjs');
+
+
+var services;
+var cloudant;
+var databaseEmpol;
+var LookupUsername ={
+	"selector":{
+		"_id":""
+	}
+};
+
+init();
 
 /* a list of objects which will contain the user object and key values (username) */
 	users = {}; 
@@ -48,19 +62,85 @@ server.listen(appEnv.port, '0.0.0.0', function() {
 /* this method defines functions when a connection is established */
 io.sockets.on('connection', function(socket){
 	/* function is called to verify the validity of a username, insert the user into the list and notify the chatroom */
+	//-------------Sign Up-------------------------------
+
 	socket.on('new user', function(data, callback){
-	 if (data in users) {//check if username is already in the array
-			callback(false);
-		} else { //if its not in the array add it in the array
-			callback(true);
-			socket.username = data;
-			users[socket.username] = socket;
-			updateUsernames();
-			io.sockets.emit('logInUserNotify', {
-				zeit : new Date(), usern : socket.username
+		crypt.genSalt(10,function(err,salt){
+			crypt.hash(data.password,salt,function(err,hash){
+				data.password = hash;
+				databaseEmpol.insert({_id:data.name, password: data.password}, function (error, body){
+					if (error){
+						callback(false);
+						console.log("ERROR could not store the value");
+					}else{
+					if (data in users) {//check if username is already in the array
+						callback(false);
+						}else { //if its not in the array add it in the array
+							callback(true);
+							socket.username = data.name;
+							users[socket.username] = socket;
+							updateUsernames();
+							io.sockets.emit('logInUserNotify', { 
+								zeit : new Date(), usern : socket.username
+							});
+						}
+					}
+				});
 			});
-		}
+		});
 	});
+	//----------------------Login------------------------
+
+
+    socket.on('login', function(data, callback){
+    	if(data.password!=undefined){
+    		if(data.username in users){
+    			io.sockets.emit('AlreadyLoggedInChat');
+    		}else{
+    			LookupUsername.selector._id=data.username;
+    			databaseEmpol.find(LookupUsername,function(error, result){
+    				console.log(result); 
+    				if(error){
+    					console.log("An Unknown Error Occured ... Please try Agai");
+    				}else{
+    					crypt.compare(data.password, result.docs[0].password,function(err,res){
+    						console.log("password form client"+ data.password);
+    							console.log("password from database"+ result.docs[0].password);
+    						if(!(err)){
+    							if(res==true){
+                                callback(true);
+    								socket.username = data.name;
+	                        		users[socket.username] = socket;
+	                        		if(socket.username!= undefined){
+	                        			console.log("socket.username is defined");
+	                        			updateUsernames();
+	                        			io.sockets.emit('logInUserNotify', {
+										zeit : new Date(), usern : socket.username
+										});
+	                        		}else{
+	                        			console.log("username is undefined on the socket!");
+	                        		}
+    							}else{
+    								callback(false);
+    							}
+
+    						}else{
+    							console.log("errpr" + hash);
+    						}
+
+    					});
+    				}
+
+    			});
+
+    		}
+    	}else{
+    		console.log("ERROR: Your password is undefined");
+    	}	
+	});
+
+
+	//---------------------------------------------------
 	/* updates the user list in case of changes */
 	function updateUsernames(){
 		io.sockets.emit('nicknames', Object.keys(users));
@@ -108,3 +188,33 @@ io.sockets.on('connection', function(socket){
 		});
 	});
 }); 
+
+/**Here we look whether the service exists or not*/
+/**-----------------------HIER WIRD DIE DATENBANK GEBUNDEN!------------------------*/
+function init() {
+    if (process.env.VCAP_SERVICES) {
+
+        services = JSON.parse(process.env.VCAP_SERVICES);
+        //cloudantNoSQLDB bleibt
+        var cloudantService = services['cloudantNoSQLDB'];
+        for (var service in cloudantService) {
+            //----------------Hier Name den Namen der Datenbank eingeben----------------
+            if (cloudantService[service].name === 'chatService') {
+                cloudant = Cloudant(cloudantService[service].credentials.url);
+            }
+        }
+    }
+    else {
+    	var cloudant = Cloudant({
+  "username": "5aac9789-faef-4904-996d-bd21ba38fb35-bluemix",
+  "password": "c38bd67cdf07bb719f9977cf5a226c5537ee287d4d1f0859825e3370a5d77d67",
+  "host": "5aac9789-faef-4904-996d-bd21ba38fb35-bluemix.cloudant.com",
+  "port": 443,
+  "url": "https://5aac9789-faef-4904-996d-bd21ba38fb35-bluemix:c38bd67cdf07bb719f9977cf5a226c5537ee287d4d1f0859825e3370a5d77d67@5aac9789-faef-4904-996d-bd21ba38fb35-bluemix.cloudant.com"
+});
+    }
+        databaseEmpol = cloudant.db.use('chatdatabase');
+        if (databaseEmpol === undefined) {
+            console.log("ERROR: The database is not defined!");
+        }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "NodejsStarterApp",
+  "name": "RayKati-chat",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
   },
   "dependencies": {
     "all": "latest",
+    "bcryptjs": "^2.4.3",
     "cfenv": "latest",
+    "cloudant": "^1.7.1",
     "express": "latest",
     "socket.io": "latest"
   },

@@ -12,30 +12,111 @@
 			var $messageForm = $('#send-message');
 			var $messageBox = $('#message');
 			var $chat = $('#chat');
+			var $password = $('#password');
+			var $password2 = $('#password2');
+			var $LoginForm = $('#LoginForm');
+			var $LoginLinkButton = $('#LoginLinkButton');
+			var $SignupForm = $('#SignupForm');
+			var $SignupLinkButton = $('#SignupLinkButton');
+			var $LoginLink = $('#LoginLink');
+			var $LoginNameForm = $('#signUpForm');
+			var $loginusername= $('#loginusername');
+			var $loginpassword = $('#loginpassword');
+			var $LoginWrap = $('#LoginWrap'); 
+
+			$LoginForm.submit(function(e){
+				e.preventDefault();
+				$('#usernameWrap').hide();
+				$('#LoginWrap').show();
+				//$('#LoginLinkButton').prop('disabled', true);
+				$('#LoginLinkButton').hide();
+				$('#SignupLinkButton').show();
+			});
+			
+			$SignupForm.submit(function(e){
+				e.preventDefault();
+				$('#usernameWrap').show();
+				$('#LoginWrap').hide();
+				//$('#LoginLinkButton').prop('disabled', true);
+				$('#SignupLinkButton').hide();
+				$('#LoginLink').show();
+			});
 			
 			/*This function which takes as parameter the event e is triggered 
 			when the user submits the login form with a username*/
+			//-----------------SignUp------------------------------------------------
 			$usernameForm.submit(function(e){
 				e.preventDefault();
+				console.log("Hier-------------------------------------------");
 				if ($('#username').val() ==""){
 						alert("This username is invalid! Please enter another one.");
-					} else {
-						/*this function is called when the new user event is triggered
+					}else if ($('#password').val() ==""){
+						alert("This password is invalid! Please enter another one.");
+					} 
+					else {
+						if($password.val()===$password2.val()){
+							/*this function is called when the new user event is triggered
 						the parameter usernameBox.val() provide the inputs of the user 
 						and the callback function gets the boolean value if the name is valid or not from the server
 						  */
-						socket.emit('new user', $usernameBox.val(), function(data){
+						socket.emit('new user', {name: $usernameBox.val(), password: $password.val()}, function(data){
 						if (data == true){ //if the username is valid check
 							$('#usernameWrap').hide();
 							$('#contentWrap').show();
+					
 						} else {
 							alert("That username is already taken! Please try it again!");
 						}
 					});
+						}
+						else{
+							alert("Mismatched password");
+						}
+						
 						$usernameBox.val('');
+						$password.val('');
 					}
 					return false;
 				});
+  //---------------------------------------login-------------------------------
+
+             $LoginNameForm.submit(function(e){
+				    e.preventDefault();
+				
+				if ($('#loginusername').val() ==""){
+						alert("This the login name is invalid! Please enter another one.");
+					}else if ($('#loginpassword').val() ==""){
+						alert("This login password is invalid! Please enter another one.");
+					} 
+					else {
+			
+							/*this function is called when the new user event is triggered
+						the parameter usernameBox.val() provide the inputs of the user 
+						and the callback function gets the boolean value if the name is valid or not from the server
+						  */
+						socket.emit('login', {name: $loginusername.val(), password: $loginpassword.val()}, function(data){
+						if (data == true){ //if the username is valid check
+							$('#usernameWrap').hide();
+							$('#contentWrap').show();
+							$LoginWrap.hide();
+					
+						} else {
+							alert("The user is not registered!");
+						}
+					});
+						
+						$usernameBox.val('');
+						$password.val('');
+					}
+					return false;
+				});
+
+             //----------------------------------------output alreadyLoggedInChat------------------
+             socket.on('alreadyLoggedInChat',function(data){
+             	alert("User is Already Logged in the Chat!");
+
+             });
+
 
 			/* This function is called when the user submits his message in the messageForm */
 			$messageForm.submit(function(e){ //attaching an event handler to the form
