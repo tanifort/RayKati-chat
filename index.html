@@ -27,8 +27,8 @@
 		<!--<p id="p">Please enter a username to login:</p>-->
 		<form id="setUsername">
 			<input type="text" size="35" id="username" placeholder="username"></input>
-			<input type="password" size="43" id="password" placeholder="password"></input>
-			<input type="password" size="43" id="password2" placeholder="verify password"></input><br>
+			<input type="password" size="43" id="password" placeholder="password" autocomplete="off"></input>
+			<input type="password" size="43" id="password2" placeholder="verify password" autocomplete="off"></input><br>
 			<button class="button"><span>Login</span></button>
 		</form>
 	</div>
@@ -38,7 +38,7 @@
 		<h1 id="welcomePage"> Chatroom | Login </h1>
 		<form id="signUpForm">
 			<input type="text" size="43" id="loginusername" placeholder="username"></input>
-			<input type="password" size="43" id="loginpassword" placeholder="password"></input>
+			<input type="password" size="43" id="loginpassword" placeholder="password" autocomplete="off"></input>
 			<button class="button"><span>Login</span></button>
 		</form>
 	</div>
@@ -60,10 +60,6 @@
 
 <script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
-<script type="text/javascript" src="public/javascript.js"></script>
-
-
-
-	
+<script type="text/javascript" src="public/javascript.js"></script>	
 </body>
 </html>

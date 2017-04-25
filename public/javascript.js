@@ -4,7 +4,7 @@
 			/*declaration of the needed variables from the html web page*/
 
 			
-			 var socket = io.connect();
+			var socket = io.connect();
 			var $usernameForm = $('#setUsername');
 			var $usernameError = $('#usernameError');
 			var $usernameBox = $('#username');
@@ -23,6 +23,8 @@
 			var $loginusername= $('#loginusername');
 			var $loginpassword = $('#loginpassword');
 			var $LoginWrap = $('#LoginWrap'); 
+
+			
 
 			$LoginForm.submit(function(e){
 				e.preventDefault();
@@ -112,7 +114,7 @@
 				});
 
              //----------------------------------------output alreadyLoggedInChat------------------
-             socket.on('alreadyLoggedInChat',function(data){
+             socket.on('AlreadyLoggedInChat',function(data){
              	alert("User is Already Logged in the Chat!");
 
              });
@@ -142,13 +144,19 @@
 			/* This function displays the sent message of a user with timestamp and his username to the chatroom */
 			socket.on('new message', function(data){ 
 				var zeit = new Date(data.zeit);
-				$chat.append('<span class="msg">[' + zeit.getFullYear()+ '/'+ (zeit.getMonth() + 1) + '/' + zeit.getDate() + ' '
+				function focus () {
+					var focusBottom = $chat;
+					var height = focusBottom[0].scrollHeight;
+					focusBottom.scrollTop(height);
+				}
+				$chat.append('<span style="height:100%;" class="msg"> <i> <font size="2" color="DarkGray">' + zeit.getFullYear()+ '-'+ (zeit.getMonth() + 1) + '-' + zeit.getDate() + ' '
 					+ (zeit.getHours() <10 ? '0' + zeit.getHours() : zeit.getHours()) 
 					+ ':' + 
 					(zeit.getMinutes()<10 ? '0' + zeit.getMinutes(): zeit. getMinutes()) 
 					+ ':' + 
 					(zeit.getSeconds()<10 ? '0' + zeit.getSeconds(): zeit. getSeconds()) 
-					+'] <b>' + data.usern + ': </b>' + data.msg + "</span><br/>"); //display the message
+					+'</font></i> <b>' + data.usern + ': </b><font face="Century Gothic">' + data.msg + "</font></span><br/>"); //display the message
+				focus();
 			});
 
 			/* This function displays the private sent message of a user with timestamp and his username

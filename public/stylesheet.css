@@ -24,6 +24,8 @@
 		#chat{
 			height: 500px;
 			margin:auto;
+			overflow-y: scroll;
+			word-wrap:break-word;
 		}
 		#SignUpLink{
 			display:none; /*to not display the login first*/
@@ -38,6 +40,7 @@
 		#contentWrap{
 			display:none; /*to not display the chat first*/
 			margin:auto;
+
 		}
 		#chatWrap{		
 			width: 500px;
