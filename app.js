@@ -88,7 +88,7 @@ io.sockets.on('connection', function(socket){
 		crypt.genSalt(10,function(err,salt){
 			crypt.hash(data.password,salt,function(err,hash){
 				data.password = hash;
-				database.insert({_id:data.name, password: data.password}, function (error, body){
+				database.insert({_id:data.name.toLowerCase(), password: data.password}, function (error, body){
 					if (error){
 						callback(false);
 						console.log("ERROR could not store the value");
@@ -121,7 +121,7 @@ io.sockets.on('connection', function(socket){
     			socket.emit('AlreadyLoggedInChat');
     			console.log("user --->" + data.name + "is already logged in the Chat");
     		}else{
-    			LookupUsername.selector._id=data.name;
+    			LookupUsername.selector._id=data.name.toLowerCase();
     			database.find(LookupUsername,function(error, result){
     				console.log(result); 
     				if(error){
