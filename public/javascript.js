@@ -1,8 +1,8 @@
-
+/* @author Ramond Belmo Tanifor Tamah, Katerina Irini Geniou 
+   @version 2.0*/
 		
 		jQuery(function($){
 			/*declaration of the needed variables from the html web page*/
-
 			
 			var socket = io.connect();
 			var $usernameForm = $('#setUsername');
@@ -25,12 +25,13 @@
 			var $LoginWrap = $('#LoginWrap'); 
 			var $loginQuestion = $('#loginQuestion');
 
-							function focus () {
-					var focusBottom = $chat;
-					var height = focusBottom[0].scrollHeight;
-					focusBottom.scrollTop(height);
-				}
-
+			/* this function is used to place the focus in the div on the latest messages*/
+			function focus () {
+				var focusBottom = $chat;
+				var height = focusBottom[0].scrollHeight;
+				focusBottom.scrollTop(height);
+			}
+			/* this function is called to switch from the signup page to the login */
 			$LoginForm.submit(function(e){
 				e.preventDefault();
 				$('#usernameWrap').hide();
@@ -40,7 +41,7 @@
 				$('#SignupLinkButton').show();
 				$('#loginQuestion').hide();
 			});
-			
+			/* this function is called to switch from the login page to the sign up */
 			$SignupForm.submit(function(e){
 				e.preventDefault();
 				$('#SignupLinkButton').hide();
@@ -55,7 +56,7 @@
 			});
 			
 			/*This function which takes as parameter the event e is triggered 
-			when the user submits the login form with a username*/
+			when the user submits the sign up form with a username and a password when registering to our service*/
 			//-----------------SignUp------------------------------------------------
 			$usernameForm.submit(function(e){
 				e.preventDefault();
@@ -91,7 +92,10 @@
 					}
 					return false;
 				});
-  //---------------------------------------login-------------------------------
+
+			//---------------------------------------login-------------------------------
+			/*This function which takes as parameter the event e is triggered 
+			when the user submits the login form with a username and a password during login to our service*/
 
              $LoginNameForm.submit(function(e){
 				    e.preventDefault();
@@ -104,8 +108,8 @@
 					else {
 			
 							/*this function is called when the new user event is triggered
-						the parameter usernameBox.val() provide the inputs of the user 
-						and the callback function gets the boolean value if the name is valid or not from the server
+						the parameter loginusername.val() and loginpassword.val() provide the inputs of the user 
+						and the callback function gets the boolean value if the credentials or user inputs are valid or not from the server
 						  */
 						socket.emit('login', {name: $loginusername.val(), password: $loginpassword.val()}, function(data){
 						if (data == true){ //if the username is valid check
@@ -125,7 +129,7 @@
 					return false;
 				});
 
-             //----------------------------------------output alreadyLoggedInChat------------------
+             /* this function is called when a user tries to login while already in the chat */
              socket.on('AlreadyLoggedInChat',function(data){
              	alert("User is Already Logged in the Chat!");
 
