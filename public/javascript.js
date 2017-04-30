@@ -119,7 +119,7 @@
 							$('#SignupLinkButton').hide();
 					
 						} else {
-							alert("The user is not registered!");
+							alert("The user is yet not registered!");
 						}
 					});
 						

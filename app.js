@@ -123,10 +123,22 @@ io.sockets.on('connection', function(socket){
     		}else{
     			LookupUsername.selector._id=data.name.toLowerCase();
     			database.find(LookupUsername,function(error, result){
-    				console.log(result); 
+    				//-------------------------------------------
+                     if(result.docs[0]===undefined){
+
+                     console.log("THE REUtLIT IS UNDEFINED");
+                     }else{
+                     	console.log("RESULT IS DEFINED");
+                     	console.log("PLEASE result.docs[0]====>" + result.docs[0]);
+
+                     }
+
+             //-------------------------------------------
+    				
     				if(error){
     					console.log("An Unknown Error Occured ... Please try Again");
-    				}else{
+    				}else if(result.docs[0]!=undefined){
+
     					crypt.compare(data.password, result.docs[0].password,function(err,res){
     						//console.log("password from client: "+ data.password);
     							//console.log("password from database: "+ result.docs[0].password);
@@ -150,8 +162,12 @@ io.sockets.on('connection', function(socket){
 
     						}else{
     							console.log("error");
+    							callback(false);
     						}
     					});
+
+    				}else{
+    					callback(false);
     				}
     			});
     		}
