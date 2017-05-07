@@ -1,8 +1,8 @@
 applications:
 - path: .
   memory: 256M
-  instances: 1
+  instances: 3
   domain: mybluemix.net
-  name: RayKati-chat4
-  host: RayKati-chat4
+  name: RayKati-chat
+  host: RayKati-chat
   disk_quota: 1024M

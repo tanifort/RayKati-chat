@@ -9,7 +9,7 @@
 var express = require ('express'),
 	app = express(),
 	server = require ('http').createServer(app),
-	io = require('socket.io').listen(server),
+	io = require('socket.io').listen(server, {transports: ['websocket']}),
 	Cloudant = require('cloudant'),
 	crypt = require('bcryptjs'),
 	middleware = require("middleware"),

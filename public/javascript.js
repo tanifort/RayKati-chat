@@ -3,8 +3,8 @@
 		
 		jQuery(function($){
 			/*declaration of the needed variables from the html web page*/
-			
-			var socket = io.connect();
+			var socket = io({transports: ['websocket']});
+			socket = io.connect();
 			var $usernameForm = $('#setUsername');
 			var $usernameError = $('#usernameError');
 			var $usernameBox = $('#username');
