@@ -1,11 +1,12 @@
 /* @author Ramond Belmo Tanifor Tamah, Katerina Irini Geniou 
-   @version 2.0*/
+   @version 3.0*/
 
 //------------------------------------------------------------------------------
 // node.js Chat application intigrated on the Bluemix Cloud
 //-----------------------------------------------------------------------------
 
 /* import required frameworks and libraries */
+/* Note Belmo---------------Additional bugs fixing----> render msgs so no HTML msg is read but sent als object.*/
 var express = require ('express'),
 	app = express(),
 	server = require ('http').createServer(app),
@@ -15,15 +16,27 @@ var express = require ('express'),
 	middleware = require("middleware"),
 	url = require("url"),
 	cfenv = require('cfenv'),
-	tls = require('tls');
+	tls = require('tls'),
+	redis = require('socket.io-redis');
+	//session = require('express-session'),
+	//cookieParser = require('cookie-parser'),
+	//edisStore = require('connect-redis')(session);
+	
+	//sessionStore = require('sessionstore');
+//	sessionSockets = require('socket.io-session');
+
 
 /* Some variables we used */
 var services;
 var cloudant;
 var database;
-var middelware = module.exports;
+var online;
 var http = "http:";
 var https = "https:";
+var resultList=[];
+
+
+
 
 /* this object is required to iterate through the database so that we can use it for the find() function */
 var LookupUsername ={
@@ -31,6 +44,12 @@ var LookupUsername ={
 		"_id":""
 	}
 };
+var lookupSid={
+	"selector":{
+		"Sid":""
+	}
+};
+
 
 /* function-call to bind to our Cloudant NoSQL Database */
 init();
@@ -57,6 +76,7 @@ users = {};
 app.use('/public', express.static(__dirname + '/public'));
 
 //app.use(middleware.transportSecurity());
+//app.use(session({store: sessionStore, key: 'jsessionid', secret: 'your secret here'}));
 
 /* on get request from a client an index.html file is sent as respond */
 app.get('/', function(req,res){
@@ -73,10 +93,11 @@ server.listen(appEnv.port, '0.0.0.0', function() {
   console.log("server starting on " + appEnv.url);
 });
 //---------------------------
+/* The Connection to the Redis database using its credentials provided in bluemix  ,this enables our server instances to communicate with each other */
+io.adapter(redis({host: 'pub-redis-17789.dal-05.1.sl.garantiadata.com', port: 17789, password: 'x9imwLEOIXcaMYuj'}));
 
-/*the server listens on the port 3000 */
-//server.listen(appEnv.port);
-//console.log(appEnv.url);
+
+
 
 /* this method defines functions when a connection is established */
 io.sockets.on('connection', function(socket){
@@ -85,10 +106,10 @@ io.sockets.on('connection', function(socket){
 	the password is secured using a hash function
 	afterwards the password and the username are insertet in the Cloudant NoSQL database and the chatroom is notified of the incoming user*/
 		socket.on('new user', function(data, callback){
-		crypt.genSalt(10,function(err,salt){
-			crypt.hash(data.password,salt,function(err,hash){
+			crypt.genSalt(10,function(err,salt){
+				crypt.hash(data.password,salt,function(err,hash){
 				data.password = hash;
-				database.insert({_id:data.name.toLowerCase(), password: data.password}, function (error, body){
+				database.insert({_id:data.name.toLowerCase(), password: data.password, Sid: socket.id}, function (error, body){
 					if (error){
 						callback(false);
 						console.log("ERROR could not store the value");
@@ -100,22 +121,36 @@ io.sockets.on('connection', function(socket){
 							callback(true);
 							socket.username = data.name;
 							users[socket.username] = socket;
+                        online.insert({_id:data.name.toLocaleLowerCase(),Sid:socket.id},function(error,b){
+                            if(error){
+                                console.log("THIS USER COULD NOOT BE INSERTED IN THE ONLINE DATABASE ... Please take care of this if not he/she would not appear in the User List");
+                            }else{
+                                console.log("THE USER WAS SUCCESSFULLY INSERTED IN THE ONLINE DATABASE ");
+
+                            }
+                        });
 							updateUsernames();
 							io.sockets.emit('logInUserNotify', { 
 								zeit : new Date(), usern : socket.username
-							});
+						});
+
+
 						}
 					}
 				});
 			});
 		});
 	});
+
+
 	//----------------------Login------------------------//
 	/* This function is called for registered users who want to reenter the chatroom 
 	the credentials of the user are validated against the supposed stored credentials of the user in the Cloudant NoSQL database 
 	in the case of a succesfull identification the user is given access to the chatroom */
 
     socket.on('login', function(data, callback){
+        console.log("LOGIN----------- THis User ---------------------------------------->" +data.name);
+
     	if(data.password!=undefined){
     		if(data.name in users){
     			socket.emit('AlreadyLoggedInChat');
@@ -123,18 +158,6 @@ io.sockets.on('connection', function(socket){
     		}else{
     			LookupUsername.selector._id=data.name.toLowerCase();
     			database.find(LookupUsername,function(error, result){
-    				//-------------------------------------------
-                     if(result.docs[0]===undefined){
-
-                     console.log("THE REUtLIT IS UNDEFINED");
-                     }else{
-                     	console.log("RESULT IS DEFINED");
-                     	console.log("PLEASE result.docs[0]====>" + result.docs[0]);
-
-                     }
-
-             //-------------------------------------------
-    				
     				if(error){
     					console.log("An Unknown Error Occured ... Please try Again");
     				}else if(result.docs[0]!=undefined){
@@ -144,12 +167,23 @@ io.sockets.on('connection', function(socket){
     							//console.log("password from database: "+ result.docs[0].password);
     						if(!(err)){
     							if(res==true){
+
     								callback(true);
     								socket.username = data.name;
 	                        		users[socket.username] = socket;
 	                        		if(socket.username!= undefined){
 	                        			console.log("socket username is defined");
 	                        			updateUsernames();
+
+                                        online.insert({_id:data.name.toLocaleLowerCase(),Sid:socket.id},function(error,b){
+                                            if(error){
+                                                console.log("THIS USER COULD NOOT BE INSERTED IN THE ONLINE DATABASE ... Please take care of this if not he/she would not appear in the User List");
+                                            }else{
+                                                console.log("THE USER "+data.name+ " SCHOULD NOW HAVE A Sid");
+                                                console.log("THE USER WAS SUCCESSFULLY INSERTED IN THE ONLINE DATABASE ");
+
+                                            }
+                                        });
 	                        			io.sockets.emit('logInUserNotify', {
 										zeit : new Date(), usern : socket.username
 										});
@@ -175,6 +209,7 @@ io.sockets.on('connection', function(socket){
     		console.log("ERROR: Your password is undefined");
     	}	
 	});
+    //-----------------------------------------------
 
 	/* updates the user list in case of changes */
 	function updateUsernames(){
@@ -193,33 +228,153 @@ io.sockets.on('connection', function(socket){
 			if (ind !== -1){ //check if there is something tiped in
 				var name = msg.substring(0, ind);
 				var msg = msg.substring(ind + 1);
-				if(name in users){
-					users[name].emit('private', {zeit: new Date(), msg: msg,  usern: socket.username
-					});
-				} 
-				else {
-					callback('Error Enter valid user!');
-				}
+				//----------------------------------------------------------------
+                console.log("THE NAME OF THE PERSON TO RECIEVE PROCCESSED FROM THE SENDER MESSAGE " + name+ " SENT BY :------>" +socket.username);
+
+                online.list({
+                    'include_docs': true
+                },function(err,body){
+                    if(err){
+                        console.log("ERRROR WHEN DELETING THE USER FROM THE ONLINE DATABASE");
+                    }else{
+                        var rows = body.rows;
+                        var items = [];
+                        var rec_found = false;
+                        console.log(" this is the list of online Users + SIDs"+ rows);
+                        console.log("THE NAME OF THE RECEIVER IS---------------------->"+name);
+                        rows.forEach(function (row) {
+                            if (row.doc._id===name ) {
+                                if(row.doc.Sid!=undefined){
+                                    var MySocketId=row.doc.Sid;
+                                    console.log("THIS IS THE USERS SID " +MySocketId );
+                                    console.log("THE NAME OF THE RECIEVER FOUND IN THE ONLINE DATABASE ---> " +row.doc._id );
+
+                                    rec_found = true;
+
+                                    io.to(MySocketId).emit('private', {zeit: new Date(), msg: msg,  usern: socket.username
+                                    });
+
+                                    console.log("THE USER ("+row.doc_id+ ") IS ONLINE and should have recieved the private msg by now  --------------------------------------------");
+								}else{
+                                	console.log("THE USER IN ONLINE BUT DOES NOT HAVE Sid = undefined");
+								}
+
+                            }else{console.log("THE USER ("+row.doc_id+ ") IS NOT ONLINE --------------------------------------------");}
+
+                        });
+
+                    }
+
+
+                });
+
+
+
 			} 
 			else {
 				callback('Error! Please enter a message');
 			}
 		}
 		else if(msg.substr(0,5) === '/list'){
-			callback(Object.keys(users));
+
+		    //------------------------------------------------
+
+            online.list({
+                'include_docs': true
+            },function(err,body){
+                if(err){
+                    console.log("ERRROR WHEN DELETING THE USER FROM THE ONLINE DATABASE");
+                }else{
+                    var rows = body.rows;
+                    var items = [];
+                    var rec_found = false;
+                    console.log(rows);
+                    rows.forEach(function (row) {
+                        if (row && row.doc !=undefined) {
+                            console.log("Row_ID ----------------------------------"+row._id);
+                            console.log("socekt.username--------------------"+ socket.username);
+                            rec_found = true;
+                            items.push(row.doc._id);
+                        }
+                        console.log("row._id wrong object");
+                    });
+                    if(items.length===0){
+                        console.log("NO ENTRY FOUND IN THE DATAVASE");
+                    }else{
+
+                        callback(items);
+
+
+
+
+                    }
+                }
+
+
+            });
+
+
 		}
 		else {
 			io.sockets.emit('new message', {
 				zeit: new Date(), msg: msg,  usern: socket.username
-				}); //sends out message to all users and yourself
+				}); //sends out message to alls users and yourself
 		}
 	});
 
 	/* method called when a user disconnects from the socket 
 	the user is removed from the user list and the chatroom gets notified */
 	socket.on('disconnect', function(data){
+	    //------------------------------------------------------------------
+        /* During the disconnect Event the Username previously stored in a the online database is updated , every user that leaftz the chat is removed f´rom the database as well.*/
+        online.list({
+            'include_docs': true
+        },function(err,body){
+            if(err){
+                console.log("ERRROR WHEN DELETING THE USER FROM THE ONLINE DATABASE");
+            }else{
+                var rows = body.rows;
+                var items = [];
+                var rec_found = false;
+                console.log(rows);
+                rows.forEach(function (row) {
+                    if (row.doc._id ===socket.username) {
+                        console.log("Row_ID ----------------------------------"+row._id);
+                        console.log("socekt.username--------------------"+ socket.username);
+                        rec_found = true;
+                        items.push(row.doc._rev);
+                    }
+                    console.log("row._id wrong object");
+                });
+                if(items.length===0){
+                    console.log("NO ENTRY FOUND IN THE DATAVASE");
+                }else{
+
+                   // var docId = items[0]._id;
+                     console.log("item at the [0]"+items[0]);
+                   // var docRev = items[0]._rev;
+                    online.destroy(socket.username, items[0],  function(err) {
+                        if (!err) {
+                            console.log("Successfully deleted doc with fkId: ");
+
+                        } else {
+                            console.log("THe Entry could not be deleted");
+                        }
+                    });
+
+                }
+            }
+
+
+        });
+
+
+
+
 		if (!socket.username) 
 			return;
+
+
 		delete users[socket.username]; //gets rid of elements in array
 		updateUsernames();//update userlist on client side
 		io.sockets.emit('logOutUserNotify', {
@@ -250,9 +405,11 @@ function init() {
     		"port": 443,
     		"url": "https://5aac9789-faef-4904-996d-bd21ba38fb35-bluemix:c38bd67cdf07bb719f9977cf5a226c5537ee287d4d1f0859825e3370a5d77d67@5aac9789-faef-4904-996d-bd21ba38fb35-bluemix.cloudant.com"
     	});
+
     }
+    online= cloudant.db.use('online');
     database = cloudant.db.use('chatdatabase');
-    if (database === undefined) {
+    if ((database === undefined)||(online===undefined) ) {
     	console.log("ERROR: The database is not defined!");
     }
 }

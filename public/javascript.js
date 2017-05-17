@@ -142,6 +142,7 @@
 				/* This function with @param send message @param messageBox.val() and the callback function
 				with @param data emits the typed message to the server and the received data which is then displayed */
 				socket.emit('send message', $messageBox.val(), function(data){
+					console.log("Size of the LIST " +data.length);
 					$chat.append('<span class="userlist"><font color="#3399ff"> <b><i>connected users: ' + data + "</i></b></font></span><br/>"); //display the message
 					focus();
 				});
